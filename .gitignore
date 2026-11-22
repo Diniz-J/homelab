@@ -1,0 +1,48 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.example.tfvars
+.terraform.lock.hcl
+crash.log
+
+# Ansible
+*.retry
+ansible/inventory/*.ini
+ansible/inventory/*.yml
+!ansible/inventory/.gitkeep
+!ansible/inventory/*.example.yml
+
+# SOPS / age
+*.age
+age.key
+age-key.txt
+secrets/*.key
+
+# OCI
+oci_api_key.pem
+oci_api_key_public.pem
+.oci/
+
+# Kubernetes
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local overrides
+*.local
+.env
+.env.*
+!.env.example
