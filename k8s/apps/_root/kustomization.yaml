@@ -8,4 +8,5 @@ resources:
   - kube-prometheus-stack.yaml
   - loki.yaml
   - alloy.yaml
+  - minio.yaml
   - go-sample.yaml
