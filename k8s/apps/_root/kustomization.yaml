@@ -10,4 +10,5 @@ resources:
   - alloy.yaml
   - minio.yaml
   - backup.yaml
+  - grafana-dashboards.yaml
   - go-sample.yaml
