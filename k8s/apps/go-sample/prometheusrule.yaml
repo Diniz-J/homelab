@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: go-sample
+  labels:
+    app.kubernetes.io/name: go-sample
+spec:
+  groups:
+    - name: go-sample.rules
+      rules:
+        - alert: GoSampleDown
+          # Prometheus can't scrape /metrics: pod unreachable, readiness
+          # probe failing (e.g. after /boom) or the service is gone.
+          expr: up{job="go-sample"} == 0 or absent(up{job="go-sample"}) == 1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "go-sample is down"
+            description: "Prometheus has not been able to scrape go-sample for 2 minutes. Did someone hit /boom?"
+        - alert: GoSampleBoomed
+          # /boom was invoked in the last 10 minutes. Informational — no
+          # paging, just a visible trace that the broken-on-purpose flow
+          # was exercised.
+          expr: increase(homelab_boom_total[10m]) > 0
+          for: 0m
+          labels:
+            severity: info
+          annotations:
+            summary: "go-sample received a /boom"
+            description: "homelab_boom_total increased in the last 10 minutes."
