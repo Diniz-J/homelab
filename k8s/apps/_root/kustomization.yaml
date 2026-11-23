@@ -6,4 +6,6 @@ resources:
   - cert-manager.yaml
   - cluster-issuers.yaml
   - kube-prometheus-stack.yaml
+  - loki.yaml
+  - alloy.yaml
   - go-sample.yaml

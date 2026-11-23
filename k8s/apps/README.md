@@ -41,6 +41,14 @@ From there, ArgoCD syncs every leaf.
   `https://grafana.homelab.localhost`. Prometheus picks up every
   `ServiceMonitor` / `PodMonitor` / `PrometheusRule` in the cluster.
   `sync-wave: "15"` so the `homelab-ca` issuer is ready for the ingress.
+- `loki` — Loki in `SingleBinary` mode with filesystem storage and a
+  7-day retention. Scalable / distributed components, caches, gateway
+  and self-monitoring are all off; this is a lab, not a tenant.
+  `sync-wave: "15"`.
+- `alloy` — Grafana Alloy as a DaemonSet. One River pipeline:
+  Kubernetes pod discovery → relabel to `namespace`/`pod`/`container`/`app`
+  → push to Loki in `monitoring`. `sync-wave: "20"`, so Loki's endpoint
+  exists before the first push.
 - `go-sample` — the demo workload (source under
   [`workloads/go-sample/`](../../workloads/go-sample/)). Exposes
   `/healthz`, `/metrics` and `/boom`, reachable at
@@ -49,7 +57,5 @@ From there, ArgoCD syncs every leaf.
 
 ## What's next
 
-- `ServiceMonitor` + `PrometheusRule` for `go-sample`
-- Alloy + Loki for logs
 - Alertmanager routed to Telegram
 - MinIO + backup CronJob
