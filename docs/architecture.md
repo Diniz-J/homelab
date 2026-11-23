@@ -3,41 +3,38 @@
 ## Overview
 
 ```
-                      GitHub
-                        |
-                        | OIDC
-                        v
-            +-------------------------+
-            |   GitHub Actions CI     |
-            |  lint / plan / apply    |
-            +-----------+-------------+
-                        |
-                        v
-      +--------------------------------------+
-      |   Oracle Cloud (sa-saopaulo-1)       |
-      |                                      |
-      |   +------------------------------+   |
-      |   | ARM Ampere A1 VM (k3s node)  |   |
-      |   |                              |   |
-      |   |  Traefik + cert-manager      |   |
-      |   |  ArgoCD                      |   |
-      |   |  Alloy / Prometheus / Loki   |   |
-      |   |  Grafana / Alertmanager      |   |
-      |   |  Backup CronJob              |   |
-      |   |  go-sample (demo workload)   |   |
-      |   +------------------------------+   |
-      |                                      |
-      |   Object Storage                     |
-      |   - tf-state                         |
-      |   - backups (primary)                |
-      +------------------+-------------------+
+                       GitHub
                          |
-                         | rclone pull
+                         | push / PR
                          v
-                 Local PC (cold copy)
+             +-------------------------+
+             |   GitHub Actions CI     |
+             |  lint + unit + e2e      |
+             |                         |
+             |  e2e: kind cluster      |
+             |       tf apply          |
+             |       ArgoCD sync       |
+             |       smoke tests       |
+             |       tear down         |
+             +-------------------------+
 
+
+             +-------------------------+
+             |   Operator laptop       |
+             |                         |
+             |   k3d cluster (local)   |
+             |     Traefik             |
+             |     cert-manager        |
+             |     ArgoCD              |
+             |     Alloy / Prom / Loki |
+             |     Grafana / AlertMgr  |
+             |     MinIO (backup)      |
+             |     go-sample (demo)    |
+             |                         |
+             |   Backup rclone target  |
+             +-----------+-------------+
                          |
-                         | webhook
+                         | webhook (internet)
                          v
                    Telegram bot
 ```
@@ -46,72 +43,90 @@
 
 ### 1. Terraform
 
-Provisions infrastructure on Oracle Cloud Free Tier:
+The main stack provisions the local cluster through standard providers:
 
-- **network/**: VCN, public subnet, security list (22 restricted, 80/443 open).
-- **compute/**: Ampere A1 instance (ARM), cloud-init bootstraps the SSH key.
-- **dns/**: DuckDNS record updated via `local-exec` (no official provider).
-- **storage/**: Object Storage bucket for backups, with lifecycle policy.
+- **compute/** — a k3d cluster (via the `kind` or `k3d` provider / `null_resource`),
+  with the desired version and port mappings.
+- **network/** — a dedicated Docker network for the cluster and MinIO.
+- **storage/** — host-path volumes and a MinIO bucket pre-created for backups.
+- **registry/** — a local image registry so the CI and local workflows can
+  push ephemeral images without hitting Docker Hub rate limits.
 
-State lives in Object Storage, with locking. The bucket itself is created by the
-one-shot stack in `bootstrap/`, which keeps its state locally (committed as
-encrypted JSON via SOPS).
+State lives locally, in-tree under `terraform/.terraform/` and ignored by git.
+Secrets referenced by Terraform are SOPS-encrypted under `secrets/`.
+
+Modules are shaped so a future `compute/cloud/` sibling can target Oracle Cloud,
+Hetzner or AWS once there's a way to pay. The root `terraform/main.tf` picks
+the target through a variable.
 
 ### 2. Ansible
 
-Takes the host from "fresh Ubuntu" to "k3s node ready":
+The host-level story. Ansible isn't strictly needed for a k3d-only workflow, but
+it's part of what the lab demonstrates, and it's ready for the day there's a
+real VM to point at.
 
-- **base**: users, SSH hardening, timezone, unattended-upgrades.
-- **docker**: Docker CE from upstream repo.
-- **fail2ban**: SSH jail.
-- **node_exporter**: systemd service, scraped by Prometheus.
-- **k3s**: single-node install, with Traefik disabled (we install our own).
+Roles:
 
-Inventory is generated from Terraform output.
+- `base` — users, SSH hardening, timezone, unattended-upgrades.
+- `docker` — Docker CE from upstream repo.
+- `fail2ban` — SSH jail.
+- `node_exporter` — systemd service, scraped by Prometheus.
+- `k3s` — single-node install, Traefik disabled.
 
-Base, docker and fail2ban are tested with Molecule (Docker driver). k3s is
-tested against a real VM — Molecule with the Docker driver fights systemd and
-cgroups, and the signal-to-noise is poor.
+`base`, `docker` and `fail2ban` have Molecule scenarios with the Docker driver.
+`k3s` is validated against a Multipass VM, because Docker-in-Docker with
+systemd and cgroups is not worth fighting.
 
-### 3. Kubernetes (k3s)
+### 3. Kubernetes (local k3s via k3d)
 
 Bootstrap is a one-time manual `kubectl apply` of the ArgoCD manifests under
 `k8s/bootstrap/argocd/`. After that, ArgoCD syncs everything under `k8s/apps/`
 from this repo.
 
-- **Ingress**: Traefik v3 as a Helm release, LoadBalancer bound to the host
-  public IP.
-- **TLS**: cert-manager with a Let's Encrypt ClusterIssuer (HTTP-01).
+- **Ingress**: Traefik v3. In local mode, exposed via `k3d`'s loadbalancer on
+  `127.0.0.1`. Hostnames use `*.homelab.localhost`, which resolves to `127.0.0.1`
+  with no `/etc/hosts` edit.
+- **TLS**: cert-manager with a `selfSigned` ClusterIssuer locally, trusted by
+  importing the root CA via mkcert. CI uses Let's Encrypt staging to keep the
+  path real without burning rate limits.
 - **Observability**:
-  - Grafana Alloy as the single collector agent (metrics + logs).
-  - Prometheus scrapes node_exporter, kube-state-metrics and app `/metrics`.
+  - Grafana Alloy as the single collector agent.
+  - Prometheus scrapes node_exporter, kube-state-metrics, app `/metrics`.
   - Loki stores logs, Alloy pushes.
-  - Grafana ships with provisioned dashboards (node, k8s, app).
-  - Alertmanager routes to a Telegram webhook.
-- **Secrets**: SOPS + age. Private key lives on the host and on my laptop; never
-  in the repo.
-- **Backup**: CronJob dumps the k3s SQLite datastore and the manifests tree to
-  Object Storage. rclone on my laptop pulls the bucket weekly.
-- **Demo workload**: a small Go app exposing `/healthz`, `/metrics`, and a
-  `/boom` endpoint that returns 500s to exercise the alerting pipeline and
-  ArgoCD rollback.
+  - Grafana ships with provisioned dashboards.
+  - Alertmanager routes to a Telegram webhook (the one component that touches
+    the outside world).
+- **Secrets**: SOPS + age. Private key lives on the operator's disk; never in
+  the repo.
+- **Backup**: CronJob dumps the k3s datastore and manifests to the local MinIO
+  bucket. `rclone` copies the bucket to a cold directory on disk.
+- **Demo workload**: a small Go app exposing `/healthz`, `/metrics` and `/boom`,
+  used to exercise alerting and ArgoCD rollback.
 
-### 4. Local dev
+### 4. CI
 
-`make dev-up` spins a k3d cluster locally, installs ArgoCD, and points it at the
-same repo (dev overlay). This lets me iterate on manifests without touching
-production.
+End-to-end is the headline:
+
+1. Spin a kind cluster on the GitHub runner.
+2. `terraform apply` against the local target.
+3. Install ArgoCD, point it at the PR branch.
+4. Wait for all Applications to go Synced + Healthy.
+5. Curl the smoke endpoints.
+6. Tear everything down.
+
+A green CI run is the lab's proof of correctness.
 
 ## Resource budget
 
-k3s + the full observability stack + ArgoCD + Traefik + cert-manager fits
-comfortably in 8 GB RAM. The Ampere A1 free tier gives 4 vCPU and 24 GB, which
-leaves headroom for one or two extra apps.
+The full stack (Prometheus + Loki + Grafana + Alloy + ArgoCD + Traefik +
+cert-manager + MinIO + demo app) fits in roughly 4 GB of RAM on k3d. A GitHub
+Actions `ubuntu-latest` runner (7 GB) has enough headroom for the e2e.
 
 ## What the lab *doesn't* try to do
 
-- **HA**: it's a single node. HA would require three nodes and a real etcd,
-  which defeats the point of the free tier.
-- **Multi-tenant**: no namespace-level isolation, no RBAC beyond defaults.
-- **Production-grade DR**: the backup is a cold copy pull. For real DR I'd want
-  an off-account backup target.
+- **HA**: single node by design. Not the point.
+- **Multi-tenant**: no namespace isolation beyond defaults.
+- **Live public URL**: not until there's a cloud target. See
+  [ADR 0004](adr/0004-local-first-homelab.md).
+- **Production-grade DR**: backup is a local-to-local copy. Enough to practise
+  the drill; not enough to survive a drive failure.

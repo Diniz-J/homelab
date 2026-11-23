@@ -1,9 +1,9 @@
 # bootstrap/
 
-One-shot Terraform stack that creates the Object Storage bucket used as the
-remote backend for the main `terraform/` stack.
+Reserved for a future one-shot stack that creates the remote Terraform state
+backend once the lab targets a cloud provider.
 
-Keeps its own state locally, encrypted with SOPS, because it has to exist
-before any remote backend does.
+Not used in local-first mode: the main Terraform stack keeps its state on disk,
+and that's fine for a single-operator lab.
 
-Run once, then forget.
+See [ADR 0004](../docs/adr/0004-local-first-homelab.md).

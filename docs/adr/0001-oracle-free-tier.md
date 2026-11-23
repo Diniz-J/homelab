@@ -1,6 +1,6 @@
 # ADR 0001 — Oracle Cloud Free Tier as the hosting provider
 
-Status: accepted
+Status: superseded by [ADR 0004](0004-local-first-homelab.md)
 
 ## Context
 
