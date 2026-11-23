@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: homelab-backup
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: homelab-backup
+rules:
+  # The dump script runs `kubectl get` over every resource it knows
+  # about, so read access is cluster-wide. No write verbs.
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: [get, list]
+  - nonResourceURLs: ["*"]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: homelab-backup
+subjects:
+  - kind: ServiceAccount
+    name: homelab-backup
+    namespace: minio
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: homelab-backup

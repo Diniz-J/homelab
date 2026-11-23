@@ -53,7 +53,13 @@ From there, ArgoCD syncs every leaf.
   `:9000`, console on `:9001`). Root credentials in `secret.yaml`
   (hard-coded `minioadmin` for the lab; flagged TODO to move to SOPS).
   Console reachable at `https://minio.homelab.localhost` via Traefik +
-  `homelab-ca`. Backs the backup CronJob in the next PR.
+  `homelab-ca`.
+- `backup` — daily `CronJob` at 03:00 UTC that dumps the cluster's
+  declarative state with `kubectl get` (initContainer), tars it and
+  pushes it to the MinIO bucket `homelab-backup` (main container
+  using `minio/mc`). Read-only `ClusterRole`, no write verbs. Restore
+  runbook in [`docs/backup-restore.md`](../../docs/backup-restore.md).
+  `sync-wave: "25"`, after MinIO.
 - `go-sample` — the demo workload (source under
   [`workloads/go-sample/`](../../workloads/go-sample/)). Exposes
   `/healthz`, `/metrics` and `/boom`, reachable at
@@ -62,6 +68,6 @@ From there, ArgoCD syncs every leaf.
 
 ## What's next
 
-- MinIO + backup CronJob
 - End-to-end CI on kind
 - Grafana dashboards provisioned
+- Renovate + PR template

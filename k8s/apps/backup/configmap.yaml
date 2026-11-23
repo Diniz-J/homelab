@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-backup-scripts
+data:
+  dump.sh: |
+    #!/bin/sh
+    set -eu
+    stamp=$(date -u +%Y%m%dT%H%M%SZ)
+    out="/work/backup-${stamp}"
+    mkdir -p "${out}"
+
+    # Keep the list of kinds explicit -- we want a predictable archive,
+    # not every CRD in the cluster.
+    for kind in \
+        namespace \
+        deployment statefulset daemonset cronjob job \
+        service ingress \
+        configmap secret persistentvolumeclaim \
+        serviceaccount role rolebinding clusterrole clusterrolebinding \
+        application applicationset \
+        servicemonitor podmonitor prometheusrule \
+        certificate clusterissuer issuer
+    do
+      if ! kubectl get "${kind}" -A -o yaml > "${out}/${kind}.yaml" 2>/dev/null; then
+        echo "skipped: ${kind}"
+        rm -f "${out}/${kind}.yaml"
+      fi
+    done
+
+    tar -C /work -czf "/work/homelab-${stamp}.tgz" "backup-${stamp}"
+    rm -rf "${out}"
+    echo "wrote /work/homelab-${stamp}.tgz"
+
+  upload.sh: |
+    #!/bin/sh
+    set -eu
+    mc alias set minio http://minio.minio.svc.cluster.local:9000 \
+      "${MC_USER}" "${MC_PASS}"
+    mc mb --ignore-existing minio/homelab-backup
+
+    # 30-day retention on the bucket. Idempotent; mc rewrites the rule
+    # on every run.
+    mc ilm rule add --expiry-days 30 minio/homelab-backup || true
+
+    mc cp /work/homelab-*.tgz minio/homelab-backup/
+    echo "uploaded"

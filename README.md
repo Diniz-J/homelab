@@ -87,4 +87,5 @@ make node-down
 - [Architecture](docs/architecture.md)
 - [Secrets (SOPS + age)](docs/secrets.md)
 - [Alerting via Telegram](docs/alerting-telegram.md)
+- [Backup and restore drill](docs/backup-restore.md)
 - [ADRs](docs/adr/)
