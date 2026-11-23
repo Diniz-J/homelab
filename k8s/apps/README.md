@@ -57,5 +57,6 @@ From there, ArgoCD syncs every leaf.
 
 ## What's next
 
-- Alertmanager routed to Telegram
 - MinIO + backup CronJob
+- End-to-end CI on kind
+- Grafana dashboards provisioned
