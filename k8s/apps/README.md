@@ -60,6 +60,10 @@ From there, ArgoCD syncs every leaf.
   using `minio/mc`). Read-only `ClusterRole`, no write verbs. Restore
   runbook in [`docs/backup-restore.md`](../../docs/backup-restore.md).
   `sync-wave: "25"`, after MinIO.
+- `grafana-dashboards` — `ConfigMap`s labelled
+  `grafana_dashboard=1`, picked up by Grafana's sidecar provisioner.
+  Ships one dashboard today — `go-sample` (up stat, total `/boom`
+  calls, 5-minute request rate, logs panel from Loki). `sync-wave: "25"`.
 - `go-sample` — the demo workload (source under
   [`workloads/go-sample/`](../../workloads/go-sample/)). Exposes
   `/healthz`, `/metrics` and `/boom`, reachable at
@@ -69,5 +73,4 @@ From there, ArgoCD syncs every leaf.
 ## What's next
 
 - End-to-end CI on kind
-- Grafana dashboards provisioned
 - Renovate + PR template
