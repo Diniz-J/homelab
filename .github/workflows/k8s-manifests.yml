@@ -1,0 +1,75 @@
+name: k8s manifests
+
+on:
+  pull_request:
+    paths:
+      - 'k8s/**'
+      - '.github/workflows/k8s-manifests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'k8s/**'
+      - '.github/workflows/k8s-manifests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: kustomize build + kubeconform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kustomize
+        run: |
+          curl -sS -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz \
+            | tar -xz -C /usr/local/bin kustomize
+          kustomize version
+
+      - name: Install kubeconform
+        run: |
+          curl -sS -L https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz \
+            | tar -xz -C /usr/local/bin kubeconform
+          kubeconform -v
+
+      - name: Build and validate manifests
+        env:
+          # Skips the ArgoCD bootstrap kustomization: it pulls a 25 MB
+          # upstream install.yaml over HTTP during build, which is slow
+          # and brittle for a per-PR check. The Application CRs under
+          # k8s/apps/ reference that chart directly and are validated.
+          SKIP_DIRS: "k8s/bootstrap/argocd"
+        run: |
+          set -euo pipefail
+
+          # datreeio keeps schemas for ArgoCD, cert-manager and the
+          # prometheus-operator CRDs; -ignore-missing-schemas is the
+          # fallback for anything they haven't shipped yet.
+          crds='https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+
+          exit_code=0
+          while IFS= read -r file; do
+            dir=$(dirname "$file")
+            if grep -qxF "$dir" <<<"$SKIP_DIRS"; then
+              echo "::group::$dir (skipped)"
+              echo "skipped (upstream chart fetch)"
+              echo "::endgroup::"
+              continue
+            fi
+            echo "::group::$dir"
+            if ! kustomize build "$dir" \
+                | kubeconform \
+                    -strict \
+                    -summary \
+                    -ignore-missing-schemas \
+                    -schema-location default \
+                    -schema-location "$crds"; then
+              exit_code=1
+            fi
+            echo "::endgroup::"
+          done < <(find k8s -name kustomization.yaml)
+
+          exit $exit_code
