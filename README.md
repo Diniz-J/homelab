@@ -85,4 +85,5 @@ make node-down
 ## Docs
 
 - [Architecture](docs/architecture.md)
+- [Secrets (SOPS + age)](docs/secrets.md)
 - [ADRs](docs/adr/)
