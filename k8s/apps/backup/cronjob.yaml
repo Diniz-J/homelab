@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: homelab-backup
+spec:
+  # 03:00 UTC daily. Not aligned with any peak, and still gives room
+  # for Loki chunks to flush before we snapshot the declarative state.
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          serviceAccountName: homelab-backup
+          restartPolicy: OnFailure
+          volumes:
+            - name: work
+              emptyDir: {}
+            - name: scripts
+              configMap:
+                name: homelab-backup-scripts
+                defaultMode: 0755
+          initContainers:
+            - name: dump
+              image: bitnami/kubectl:1.31.0
+              command: ["/bin/sh", "/scripts/dump.sh"]
+              volumeMounts:
+                - name: work
+                  mountPath: /work
+                - name: scripts
+                  mountPath: /scripts
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+          containers:
+            - name: upload
+              image: minio/mc:RELEASE.2024-10-29T15-34-59Z
+              command: ["/bin/sh", "/scripts/upload.sh"]
+              env:
+                - name: MC_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-root
+                      key: rootUser
+                - name: MC_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-root
+                      key: rootPassword
+              volumeMounts:
+                - name: work
+                  mountPath: /work
+                - name: scripts
+                  mountPath: /scripts
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]

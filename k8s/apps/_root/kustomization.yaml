@@ -9,4 +9,5 @@ resources:
   - loki.yaml
   - alloy.yaml
   - minio.yaml
+  - backup.yaml
   - go-sample.yaml
