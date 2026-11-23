@@ -1,0 +1,66 @@
+name: go-sample
+
+on:
+  pull_request:
+    paths:
+      - 'workloads/go-sample/**'
+      - '.github/workflows/go-sample.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'workloads/go-sample/**'
+      - '.github/workflows/go-sample.yml'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: build and push
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workloads/go-sample
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: false
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go build (verify)
+        run: go build -o /tmp/go-sample ./...
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          short_sha=$(git rev-parse --short HEAD)
+          echo "sha=${short_sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: workloads/go-sample
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ghcr.io/diniz-j/go-sample:main
+            ghcr.io/diniz-j/go-sample:sha-${{ steps.tags.outputs.sha }}

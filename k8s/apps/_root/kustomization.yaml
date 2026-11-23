@@ -5,3 +5,4 @@ resources:
   - traefik.yaml
   - cert-manager.yaml
   - cluster-issuers.yaml
+  - go-sample.yaml
