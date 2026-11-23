@@ -86,4 +86,5 @@ make node-down
 
 - [Architecture](docs/architecture.md)
 - [Secrets (SOPS + age)](docs/secrets.md)
+- [Alerting via Telegram](docs/alerting-telegram.md)
 - [ADRs](docs/adr/)

@@ -61,6 +61,13 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 64Mi
+            # Full config comes from a user-managed Secret rather than
+            # this values file -- the Telegram bot token has no business
+            # living in plaintext git. Create it with SOPS following
+            # docs/alerting-telegram.md.
+            configSecret: alertmanager-telegram
+          # We ship no in-chart config: everything lives in the Secret.
+          config: null
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
