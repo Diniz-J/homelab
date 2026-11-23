@@ -20,6 +20,14 @@ age.key
 age-key.txt
 secrets/*.key
 
+# Plaintext secrets must never be committed. Only encrypted `.enc.yaml`
+# files are allowed to live under secrets/.
+secrets/*.yaml
+secrets/*.yml
+!secrets/*.enc.yaml
+!secrets/*.enc.yml
+!secrets/README.md
+
 # OCI
 oci_api_key.pem
 oci_api_key_public.pem

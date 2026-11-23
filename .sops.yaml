@@ -1,0 +1,18 @@
+# SOPS creation rules for the homelab repo.
+#
+# Replace the placeholder age recipient below with the public key from
+# `age-keygen`. The matching private key lives on the operator's disk
+# (see docs/secrets.md) and in CI as an Actions secret. Never commit it.
+#
+# The `encrypted_regex` keeps metadata readable (names, namespaces,
+# labels) so PR reviews stay useful; only values under `data` and
+# `stringData` are encrypted.
+
+creation_rules:
+  - path_regex: secrets/.*\.enc\.yaml$
+    encrypted_regex: '^(data|stringData)$'
+    age: age1REPLACEME0000000000000000000000000000000000000000000000000
+
+  - path_regex: k8s/.*\.enc\.yaml$
+    encrypted_regex: '^(data|stringData)$'
+    age: age1REPLACEME0000000000000000000000000000000000000000000000000
