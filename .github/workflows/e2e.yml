@@ -1,0 +1,86 @@
+name: e2e
+
+on:
+  pull_request:
+    paths:
+      - 'k8s/**'
+      - '.github/workflows/e2e.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'k8s/**'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: kind + argocd + root sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kind cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          version: v0.24.0
+          cluster_name: homelab-e2e
+          wait: 2m
+
+      - name: Install kustomize
+        run: |
+          curl -sS -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz \
+            | tar -xz -C /tmp
+          sudo mv /tmp/kustomize /usr/local/bin/
+          kustomize version
+
+      - name: Bootstrap ArgoCD
+        run: |
+          kustomize build k8s/bootstrap/argocd/ | kubectl apply -f -
+          kubectl -n argocd wait --for=condition=Available deploy/argocd-server --timeout=5m
+          kubectl -n argocd wait --for=condition=Available deploy/argocd-repo-server --timeout=5m
+
+      - name: Point root.yaml at this commit
+        env:
+          TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # ArgoCD pulls k8s/apps/_root/ from the git repo. The root
+          # Application has to point at *this* commit for the gate to
+          # exercise the PR's changes, not whatever is currently on main.
+          sed -i "s|targetRevision: HEAD|targetRevision: ${TARGET_SHA}|g" k8s/apps/root.yaml
+          grep targetRevision k8s/apps/root.yaml
+
+      - name: Apply root Application
+        run: |
+          kubectl apply -f k8s/apps/root.yaml
+
+      - name: Wait for root Application to be Synced
+        run: |
+          # Just the root itself. Downstream Applications pull from
+          # external Helm repos and their own git refs; failing them
+          # here is both slow and off-topic for this gate. A separate
+          # job will own the full fleet rollout later.
+          sync=""
+          for i in $(seq 1 60); do
+            sync=$(kubectl -n argocd get application root -o jsonpath='{.status.sync.status}' 2>/dev/null || true)
+            health=$(kubectl -n argocd get application root -o jsonpath='{.status.health.status}' 2>/dev/null || true)
+            echo "attempt $i: sync=${sync:-?} health=${health:-?}"
+            if [ "$sync" = "Synced" ]; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "root never reached Synced; last sync=${sync:-?}"
+          exit 1
+
+      - name: Dump argocd state on failure
+        if: failure()
+        run: |
+          kubectl -n argocd get applications -o wide || true
+          kubectl -n argocd get events --sort-by=.lastTimestamp | tail -50 || true
+          kubectl -n argocd describe application root || true
