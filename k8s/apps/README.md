@@ -36,9 +36,13 @@ From there, ArgoCD syncs every leaf.
   `homelab-ca` chain for local HTTPS, plus a Let's Encrypt staging
   issuer for CI. Lives in its own folder (`cluster-issuers/`) and syncs
   after cert-manager via `sync-wave: "10"`.
+- `go-sample` — the demo workload (source under
+  [`workloads/go-sample/`](../../workloads/go-sample/)). Exposes
+  `/healthz`, `/metrics` and `/boom`, reachable at
+  `https://go-sample.homelab.localhost` with a certificate from the
+  `homelab-ca` issuer. `sync-wave: "20"` so the issuer is ready first.
 
 ## What's next
 
-- `go-sample` (the demo workload)
 - Observability stack (Alloy, Prometheus, Loki, Grafana, Alertmanager)
 - MinIO + backup CronJob

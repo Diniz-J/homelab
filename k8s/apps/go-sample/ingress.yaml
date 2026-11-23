@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-sample
+  annotations:
+    cert-manager.io/cluster-issuer: homelab-ca
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - go-sample.homelab.localhost
+      secretName: go-sample-tls
+  rules:
+    - host: go-sample.homelab.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: go-sample
+                port:
+                  number: 80
