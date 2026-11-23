@@ -30,10 +30,12 @@ From there, ArgoCD syncs every leaf.
 
 - `traefik` — ingress controller via upstream Helm chart. Default
   IngressClass, logs enabled.
+- `cert-manager` — certificate controller via upstream Helm chart. CRDs
+  bundled; `ClusterIssuer`s land in a follow-up PR.
 
 ## What's next
 
-- `cert-manager`
+- `ClusterIssuer`s (self-signed for local, Let's Encrypt staging for CI)
 - `go-sample` (the demo workload)
 - Observability stack (Alloy, Prometheus, Loki, Grafana, Alertmanager)
 - MinIO + backup CronJob
