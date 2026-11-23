@@ -49,6 +49,11 @@ From there, ArgoCD syncs every leaf.
   Kubernetes pod discovery → relabel to `namespace`/`pod`/`container`/`app`
   → push to Loki in `monitoring`. `sync-wave: "20"`, so Loki's endpoint
   exists before the first push.
+- `minio` — single-replica MinIO (`StatefulSet` + 10 Gi PVC, API on
+  `:9000`, console on `:9001`). Root credentials in `secret.yaml`
+  (hard-coded `minioadmin` for the lab; flagged TODO to move to SOPS).
+  Console reachable at `https://minio.homelab.localhost` via Traefik +
+  `homelab-ca`. Backs the backup CronJob in the next PR.
 - `go-sample` — the demo workload (source under
   [`workloads/go-sample/`](../../workloads/go-sample/)). Exposes
   `/healthz`, `/metrics` and `/boom`, reachable at
