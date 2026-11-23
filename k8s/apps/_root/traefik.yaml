@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: 32.1.1
+    helm:
+      releaseName: traefik
+      valuesObject:
+        ingressClass:
+          enabled: true
+          isDefaultClass: true
+        service:
+          type: LoadBalancer
+        ports:
+          web:
+            exposedPort: 80
+          websecure:
+            exposedPort: 443
+        logs:
+          access:
+            enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
