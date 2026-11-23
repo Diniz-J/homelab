@@ -5,4 +5,5 @@ resources:
   - traefik.yaml
   - cert-manager.yaml
   - cluster-issuers.yaml
+  - kube-prometheus-stack.yaml
   - go-sample.yaml

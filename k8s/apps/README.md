@@ -36,6 +36,11 @@ From there, ArgoCD syncs every leaf.
   `homelab-ca` chain for local HTTPS, plus a Let's Encrypt staging
   issuer for CI. Lives in its own folder (`cluster-issuers/`) and syncs
   after cert-manager via `sync-wave: "10"`.
+- `kube-prometheus-stack` — Prometheus Operator, Prometheus, Grafana and
+  Alertmanager via the upstream Helm chart. Grafana reachable at
+  `https://grafana.homelab.localhost`. Prometheus picks up every
+  `ServiceMonitor` / `PodMonitor` / `PrometheusRule` in the cluster.
+  `sync-wave: "15"` so the `homelab-ca` issuer is ready for the ingress.
 - `go-sample` — the demo workload (source under
   [`workloads/go-sample/`](../../workloads/go-sample/)). Exposes
   `/healthz`, `/metrics` and `/boom`, reachable at
@@ -44,5 +49,7 @@ From there, ArgoCD syncs every leaf.
 
 ## What's next
 
-- Observability stack (Alloy, Prometheus, Loki, Grafana, Alertmanager)
+- `ServiceMonitor` + `PrometheusRule` for `go-sample`
+- Alloy + Loki for logs
+- Alertmanager routed to Telegram
 - MinIO + backup CronJob
