@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: go-sample
+  labels:
+    app.kubernetes.io/name: go-sample
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: go-sample
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 5s
