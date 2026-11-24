@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: fail2ban
+  author: Diniz-J
+  description: Install fail2ban with an SSH jail.
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions: [jammy, noble]
+
+dependencies: []

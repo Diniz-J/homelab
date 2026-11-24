@@ -1,0 +1,14 @@
+## Managed by Ansible -- role fail2ban. Edits here will be overwritten.
+
+[DEFAULT]
+bantime  = {{ fail2ban_bantime }}
+findtime = {{ fail2ban_findtime }}
+maxretry = {{ fail2ban_maxretry }}
+backend  = systemd
+
+[sshd]
+enabled  = {{ 'true' if fail2ban_ssh.enabled else 'false' }}
+port     = ssh
+maxretry = {{ fail2ban_ssh.maxretry }}
+bantime  = {{ fail2ban_ssh.bantime }}
+findtime = {{ fail2ban_ssh.findtime }}
