@@ -80,7 +80,7 @@ make node-down
 - [x] Backup `CronJob` to MinIO + documented restore drill
 - [x] CI: manifest validation (kubeconform) and end-to-end kind run on every PR
 - [x] Renovate (self-hosted) + PR template
-- [ ] Ansible roles (base, docker, fail2ban, node_exporter, k3s) with Molecule
+- [x] Ansible roles (base, docker, fail2ban, node_exporter, k3s) with Molecule
 - [ ] Terraform: local registry + docker network modules
 - [ ] First measured backup/restore drill
 - [ ] Cloud overlay (parked): same modules targeting a real provider
