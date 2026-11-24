@@ -10,10 +10,10 @@ layer of the portfolio story.
 | Role | What it does |
 |---|---|
 | `base` | Timezone, package baseline, admin user with passwordless sudo, `sshd` hardening (no root login, no passwords), unattended-upgrades. |
+| `docker` | Docker Engine from the upstream Ubuntu repo (`docker-ce`, `docker-ce-cli`, `containerd.io`, buildx and compose plugins). Daemon enabled and started, admin user added to the `docker` group. |
 
 Planned, in roadmap order:
 
-- `docker` — Docker CE from upstream repo.
 - `fail2ban` — SSH jail.
 - `node_exporter` — systemd service scraped by Prometheus.
 - `k3s` — single-node install, Traefik disabled.
