@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  vars:
+    timezone: America/Sao_Paulo
+
+  roles:
+    - role: base

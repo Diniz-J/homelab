@@ -1,0 +1,33 @@
+---
+timezone: UTC
+
+# Admin user the playbook creates. ssh keys are expected to be in
+# roles/base/files/authorized_keys/<name>.pub (not committed).
+base_user:
+  name: homelab
+  shell: /bin/bash
+  groups: [sudo]
+
+# Packages installed on every host.
+base_packages:
+  - ca-certificates
+  - curl
+  - gnupg
+  - htop
+  - lsb-release
+  - tzdata
+  - ufw
+  - unattended-upgrades
+  - vim
+
+# SSH hardening — these end up in /etc/ssh/sshd_config.d/10-homelab.conf
+# so the vendor file stays intact.
+base_ssh_config:
+  PermitRootLogin: "no"
+  PasswordAuthentication: "no"
+  ChallengeResponseAuthentication: "no"
+  UsePAM: "yes"
+  X11Forwarding: "no"
+  MaxAuthTries: "3"
+  ClientAliveInterval: "300"
+  ClientAliveCountMax: "2"

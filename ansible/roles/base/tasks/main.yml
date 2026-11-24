@@ -1,0 +1,64 @@
+---
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create admin group
+  ansible.builtin.group:
+    name: "{{ base_user.name }}"
+    state: present
+
+- name: Create admin user
+  ansible.builtin.user:
+    name: "{{ base_user.name }}"
+    shell: "{{ base_user.shell }}"
+    groups: "{{ base_user.groups }}"
+    append: true
+    create_home: true
+    state: present
+
+- name: Grant passwordless sudo to the admin user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/90-{{ base_user.name }}"
+    content: "{{ base_user.name }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
+
+- name: Harden sshd
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/10-homelab.conf
+    content: |
+      # Managed by Ansible -- role base. Edits here will be overwritten.
+      {% for k, v in base_ssh_config.items() %}
+      {{ k }} {{ v }}
+      {% endfor %}
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart sshd
+
+- name: Enable unattended-upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart unattended-upgrades
+
+- name: Ensure unattended-upgrades is running
+  ansible.builtin.service:
+    name: unattended-upgrades
+    enabled: true
+    state: started
