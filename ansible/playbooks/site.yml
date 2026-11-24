@@ -9,3 +9,4 @@
     - docker
     - fail2ban
     - node_exporter
+    - k3s

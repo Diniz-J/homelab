@@ -1,0 +1,19 @@
+---
+# Matches the Terraform k3d module's k3s image tag. Bump the two
+# together when upgrading.
+k3s_version: "v1.31.3+k3s1"
+
+# The admin user that gets a usable ~/.kube/config. Must exist already
+# -- the base role creates it.
+k3s_user: homelab
+
+# Components installed by k3s by default that we don't want, because
+# our in-cluster GitOps installs them itself under k8s/apps/.
+k3s_disable:
+  - traefik
+  - servicelb
+
+# Ask k3s to write its kubeconfig world-readable before we copy it into
+# the admin user's HOME. Keeps the vendor file predictable for other
+# tools on the host.
+k3s_write_kubeconfig_mode: "0644"
