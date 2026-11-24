@@ -62,8 +62,13 @@ From there, ArgoCD syncs every leaf.
   `sync-wave: "25"`, after MinIO.
 - `grafana-dashboards` — `ConfigMap`s labelled
   `grafana_dashboard=1`, picked up by Grafana's sidecar provisioner.
-  Ships one dashboard today — `go-sample` (up stat, total `/boom`
-  calls, 5-minute request rate, logs panel from Loki). `sync-wave: "25"`.
+  Two dashboards today:
+  - `go-sample` — up stat, total `/boom` calls, 5-minute request
+    rate, logs panel from Loki.
+  - `Platform overview` — cluster CPU and memory, pod count,
+    ArgoCD healthy-application count, pods by namespace, Traefik
+    request rate.
+  `sync-wave: "25"`.
 - `go-sample` — the demo workload (source under
   [`workloads/go-sample/`](../../workloads/go-sample/)). Exposes
   `/healthz`, `/metrics` and `/boom`, reachable at
