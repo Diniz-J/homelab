@@ -20,24 +20,30 @@
       {{ 'amd64' if ansible_architecture == 'x86_64'
       else 'arm64' if ansible_architecture == 'aarch64'
       else ansible_architecture }}
+    node_exporter_release: >-
+      node_exporter-{{ node_exporter_version }}.linux-{{
+      'amd64' if ansible_architecture == 'x86_64'
+      else 'arm64' if ansible_architecture == 'aarch64'
+      else ansible_architecture }}
 
 - name: Download node_exporter tarball
   ansible.builtin.get_url:
-    url: >-
-      https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz
-    dest: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+    url: "{{ node_exporter_download_base }}/v{{ node_exporter_version }}/{{ node_exporter_release }}.tar.gz"
+    dest: "/tmp/{{ node_exporter_release }}.tar.gz"
     mode: "0644"
+  vars:
+    node_exporter_download_base: https://github.com/prometheus/node_exporter/releases/download
 
 - name: Extract node_exporter
   ansible.builtin.unarchive:
-    src: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+    src: "/tmp/{{ node_exporter_release }}.tar.gz"
     dest: /tmp
     remote_src: true
-    creates: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}/node_exporter"
+    creates: "/tmp/{{ node_exporter_release }}/node_exporter"
 
 - name: Install node_exporter binary
   ansible.builtin.copy:
-    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}/node_exporter"
+    src: "/tmp/{{ node_exporter_release }}/node_exporter"
     dest: "{{ node_exporter_bin }}"
     remote_src: true
     owner: root
