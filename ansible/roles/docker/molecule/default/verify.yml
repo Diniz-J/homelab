@@ -1,0 +1,28 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: docker CLI reports a version
+      ansible.builtin.command: docker --version
+      changed_when: false
+
+    - name: docker daemon answers
+      ansible.builtin.command: docker info
+      register: info
+      changed_when: false
+      failed_when: info.rc != 0
+
+    - name: compose plugin installed
+      ansible.builtin.command: docker compose version
+      changed_when: false
+
+    - name: buildx plugin installed
+      ansible.builtin.command: docker buildx version
+      changed_when: false
+
+    - name: docker group exists
+      ansible.builtin.getent:
+        database: group
+        key: docker

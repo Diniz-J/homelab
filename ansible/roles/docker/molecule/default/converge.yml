@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  # Molecule bypasses the base role, so there's no homelab user yet.
+  # Point docker_user at root for the scenario; real runs through
+  # playbooks/site.yml get the right value from base role's user.
+  vars:
+    docker_user: root
+
+  roles:
+    - role: docker

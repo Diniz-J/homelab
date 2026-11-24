@@ -1,0 +1,4 @@
+---
+# User added to the "docker" group so it can talk to the daemon
+# without sudo. Defaults to the admin user the base role creates.
+docker_user: homelab
