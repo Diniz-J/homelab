@@ -12,10 +12,10 @@ layer of the portfolio story.
 | `base` | Timezone, package baseline, admin user with passwordless sudo, `sshd` hardening (no root login, no passwords), unattended-upgrades. |
 | `docker` | Docker Engine from the upstream Ubuntu repo (`docker-ce`, `docker-ce-cli`, `containerd.io`, buildx and compose plugins). Daemon enabled and started, admin user added to the `docker` group. |
 | `fail2ban` | fail2ban with an SSH jail in `/etc/fail2ban/jail.d/90-homelab.local` (default/sshd blocks, systemd backend, 3 retries / 10 min / 1 h ban). |
+| `node_exporter` | Pinned upstream `node_exporter` binary under `/usr/local/bin`, dedicated system user, systemd unit with `NoNewPrivileges` + `ProtectSystem`. Listens on `:9100`; handlers guarded with `when: not ansible_check_mode` so `--check` on a fresh host doesn't fail on a unit the dry-run didn't actually write. |
 
 Planned, in roadmap order:
 
-- `node_exporter` — systemd service scraped by Prometheus.
 - `k3s` — single-node install, Traefik disabled.
 
 ## Running

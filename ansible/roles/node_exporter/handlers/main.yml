@@ -1,0 +1,14 @@
+---
+# Guard both handlers so `ansible-playbook --check` against a fresh
+# host doesn't fail on a unit the dry-run hasn't actually written yet.
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: not ansible_check_mode
+
+- name: Restart node_exporter
+  ansible.builtin.service:
+    name: node_exporter
+    state: restarted
+  when: not ansible_check_mode

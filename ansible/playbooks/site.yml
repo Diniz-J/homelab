@@ -8,3 +8,4 @@
     - base
     - docker
     - fail2ban
+    - node_exporter
