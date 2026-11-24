@@ -71,15 +71,18 @@ make node-down
 
 ## Roadmap
 
-- [ ] Scaffold and docs *(in progress)*
-- [ ] Terraform: k3d cluster + registry + volumes
+- [x] Scaffold and docs
+- [x] Terraform: k3d cluster
+- [x] ArgoCD bootstrap and app-of-apps
+- [x] Traefik + cert-manager + sample app over HTTPS (local CA)
+- [x] Observability stack (Prometheus, Grafana, Loki, Alloy, Alertmanager)
+  with a provisioned dashboard and a routed Telegram receiver
+- [x] Backup `CronJob` to MinIO + documented restore drill
+- [x] CI: manifest validation (kubeconform) and end-to-end kind run on every PR
+- [x] Renovate (self-hosted) + PR template
 - [ ] Ansible roles (base, docker, fail2ban, node_exporter, k3s) with Molecule
-- [ ] ArgoCD bootstrap and app-of-apps
-- [ ] Traefik + cert-manager + sample app over HTTPS (local CA)
-- [ ] Observability stack with a provisioned dashboard and a real alert
-- [ ] Backup CronJob to MinIO + documented restore drill
-- [ ] CI: end-to-end kind run on every PR
-- [ ] Renovate
+- [ ] Terraform: local registry + docker network modules
+- [ ] First measured backup/restore drill
 - [ ] Cloud overlay (parked): same modules targeting a real provider
 
 ## Docs
@@ -88,4 +91,5 @@ make node-down
 - [Secrets (SOPS + age)](docs/secrets.md)
 - [Alerting via Telegram](docs/alerting-telegram.md)
 - [Backup and restore drill](docs/backup-restore.md)
+- [Importing the `homelab-ca` into your trust store](docs/trust-store.md)
 - [ADRs](docs/adr/)
