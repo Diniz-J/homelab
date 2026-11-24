@@ -1,0 +1,13 @@
+---
+# All values live in /etc/fail2ban/jail.d/90-homelab.local so the
+# vendor /etc/fail2ban/jail.conf stays untouched and upgradeable.
+
+fail2ban_bantime: 1h
+fail2ban_findtime: 10m
+fail2ban_maxretry: 5
+
+fail2ban_ssh:
+  enabled: true
+  maxretry: 3
+  bantime: 1h
+  findtime: 10m

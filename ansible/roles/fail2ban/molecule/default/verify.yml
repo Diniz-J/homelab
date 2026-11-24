@@ -1,0 +1,27 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: fail2ban package installed
+      ansible.builtin.command: dpkg -s fail2ban
+      changed_when: false
+
+    - name: jail drop-in is in place
+      ansible.builtin.stat:
+        path: /etc/fail2ban/jail.d/90-homelab.local
+      register: jail
+      failed_when: not jail.stat.exists
+
+    - name: fail2ban service is active
+      ansible.builtin.command: systemctl is-active fail2ban
+      register: active
+      changed_when: false
+      failed_when: active.stdout != 'active'
+
+    - name: sshd jail is enabled
+      ansible.builtin.command: fail2ban-client status sshd
+      register: sshd_jail
+      changed_when: false
+      failed_when: sshd_jail.rc != 0
