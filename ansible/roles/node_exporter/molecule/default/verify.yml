@@ -1,0 +1,37 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Binary installed and executable
+      ansible.builtin.stat:
+        path: /usr/local/bin/node_exporter
+      register: bin
+      failed_when: not bin.stat.exists or not bin.stat.executable
+
+    - name: System user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: node_exporter
+
+    - name: Unit file in place
+      ansible.builtin.stat:
+        path: /etc/systemd/system/node_exporter.service
+      register: unit
+      failed_when: not unit.stat.exists
+
+    - name: Service is active
+      ansible.builtin.command: systemctl is-active node_exporter
+      register: active
+      changed_when: false
+      failed_when: active.stdout != 'active'
+
+    - name: /metrics answers 200
+      ansible.builtin.uri:
+        url: http://127.0.0.1:9100/metrics
+        return_content: false
+      register: metrics
+      retries: 5
+      delay: 2
+      until: metrics.status == 200
