@@ -1,0 +1,33 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Admin user exists
+      ansible.builtin.command: id homelab
+      changed_when: false
+
+    - name: Timezone is set
+      ansible.builtin.command: timedatectl show --property=Timezone --value
+      register: tz
+      changed_when: false
+      failed_when: tz.stdout != 'America/Sao_Paulo'
+
+    - name: sshd drop-in is in place
+      ansible.builtin.stat:
+        path: /etc/ssh/sshd_config.d/10-homelab.conf
+      register: sshd_conf
+      failed_when: not sshd_conf.stat.exists
+
+    - name: sshd_config forbids root login
+      ansible.builtin.command: sshd -T
+      register: sshd
+      changed_when: false
+      failed_when: '"permitrootlogin no" not in sshd.stdout | lower'
+
+    - name: unattended-upgrades auto-upgrades file is present
+      ansible.builtin.stat:
+        path: /etc/apt/apt.conf.d/20auto-upgrades
+      register: unattended
+      failed_when: not unattended.stat.exists

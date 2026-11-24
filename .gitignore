@@ -12,6 +12,7 @@ crash.log
 ansible/inventory/*.ini
 ansible/inventory/*.yml
 !ansible/inventory/.gitkeep
+!ansible/inventory/example.yml
 !ansible/inventory/*.example.yml
 
 # SOPS / age

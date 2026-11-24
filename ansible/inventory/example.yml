@@ -1,0 +1,14 @@
+---
+# Example inventory. Copy to inventory/<env>.yml (ignored by git), fill
+# in real values and point ansible-playbook at it with -i.
+#
+# For a Multipass VM:
+#   multipass launch --name homelab-dev --cpus 2 --memory 4G --disk 20G
+#   ssh-copy-id ubuntu@<ip>
+all:
+  hosts:
+    homelab-dev:
+      ansible_host: 192.0.2.10
+      ansible_user: ubuntu
+  vars:
+    timezone: America/Sao_Paulo
