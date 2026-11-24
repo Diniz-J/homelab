@@ -1,0 +1,16 @@
+---
+exclude_paths:
+  - inventory/example.yml
+  - roles/*/molecule/
+
+# Roles are discovered from roles_path in ansible.cfg, not from a
+# Galaxy-style requirements file.
+offline: true
+
+skip_list:
+  # Role defaults.yml carry the SSH config dict and the Molecule
+  # imageN values -- surfacing them as "variable exposed" doesn't help.
+  - var-naming[no-role-prefix]
+  # Molecule converge playbooks reuse `hosts: all`; name[play] on
+  # library roles isn't the hill to die on in a lab.
+  - name[play]

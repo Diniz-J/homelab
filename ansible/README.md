@@ -42,6 +42,10 @@ and `node_exporter` test this way. `k3s` is validated against a real
 Multipass VM — Docker-in-Docker with systemd and cgroups isn't worth
 fighting for a portfolio lab.
 
+A GitHub Actions workflow (`.github/workflows/ansible.yml`) runs
+`ansible-lint` on every PR touching `ansible/` so the roles don't
+rot.
+
 ### Testing `k3s` in Multipass
 
 ```
