@@ -99,8 +99,13 @@ Never commit, even encrypted:
 
 ## What ArgoCD does with these
 
-Not yet wired. The next step is picking a rendering strategy
-(`kustomize-sops` plugin or `helm-secrets`) and documenting it here.
-Until then, decrypt manually and `kubectl apply` for the single Secret
-the Alertmanager Telegram receiver needs — the file stays encrypted in
-git either way.
+Planned, not wired: a KSOPS sidecar on `argocd-repo-server` renders
+`*.enc.yaml` files during sync. See
+[ADR 0005](adr/0005-argocd-sops-integration.md) for the plan and
+[`docs/examples/argocd-sops/`](examples/argocd-sops/) for the
+reference manifests (repo-server patch + `argocd-age-key` `Secret`
+template).
+
+Until that lands, decrypt manually and `kubectl apply` for the
+single Secret the Alertmanager Telegram receiver needs — the file
+stays encrypted in git either way.
