@@ -21,3 +21,21 @@ variable "https_port" {
   type        = number
   default     = 8443
 }
+
+variable "network_name" {
+  description = "Docker bridge network the cluster joins."
+  type        = string
+  default     = "homelab-net"
+}
+
+variable "registry_name" {
+  description = "Short name for the local k3d registry (prefix k3d- added automatically)."
+  type        = string
+  default     = "homelab-registry"
+}
+
+variable "registry_host_port" {
+  description = "Host port the local registry publishes."
+  type        = number
+  default     = 5000
+}
