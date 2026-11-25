@@ -27,12 +27,17 @@ What's **not** in a backup:
 
 - `s3://homelab-backup/homelab-<timestamp>.tgz` inside the in-cluster
   MinIO. 30-day lifecycle rule applied on first run.
-- A cold copy on your laptop via `rclone`, pulled on demand:
+- A cold copy on your laptop via `rclone`, pulled on demand by
+  [`scripts/pull-backup.sh`](../scripts/pull-backup.sh). The script
+  opens a kubectl port-forward to the in-cluster MinIO, syncs the
+  `homelab-backup` bucket to `$LOCAL_DIR` (default
+  `$HOME/homelab-backups`) and tears the port-forward down:
 
-      rclone sync minio:homelab-backup ./homelab-backups
+      ./scripts/pull-backup.sh
 
-  The `minio` remote is a standard rclone S3 target pointing at the
-  console URL with the root credentials.
+  Override any default with env vars — `MINIO_USER`, `MINIO_PASS`,
+  `LOCAL_DIR`, `MINIO_HOST`, `KUBE_CONTEXT`, `KUBE_NAMESPACE`,
+  `FORWARD=false` if you already have a port-forward running.
 
 ## Run it ad-hoc
 
