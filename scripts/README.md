@@ -15,6 +15,12 @@ Available:
   `homelab`-prefixed k3d cluster/registry and the `homelab-net`
   Docker network that outlived state. `PRUNE_VOLUMES=true` also
   removes labelled Docker volumes.
+- `smoke.sh` — `curl`s go-sample `/healthz`, Grafana `/api/health`
+  and MinIO `/minio/health/live` through the ingress, then walks
+  every ArgoCD `Application` and requires `Synced + Healthy`. Exits
+  non-zero on the first miss. `HOST_SUFFIX`, `HTTPS_PORT`,
+  `KUBE_CONTEXT`, `CURL_FLAGS` overrides available. Falls back to
+  `python3` when `jq` isn't installed.
 
 Planned:
 

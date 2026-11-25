@@ -1,4 +1,4 @@
-.PHONY: help bootstrap apply configure dev-up dev-down lint plan destroy
+.PHONY: help bootstrap apply configure dev-up dev-down smoke lint plan destroy
 
 help:
 	@echo "Targets:"
@@ -8,6 +8,7 @@ help:
 	@echo "  configure    ansible-playbook site.yml against the provisioned host"
 	@echo "  dev-up       spin a local k3d cluster and sync manifests"
 	@echo "  dev-down     tear the local k3d cluster down"
+	@echo "  smoke        hit the platform endpoints and the ArgoCD roster"
 	@echo "  lint         run all linters locally"
 	@echo "  destroy      terraform destroy (careful)"
 
@@ -28,6 +29,9 @@ dev-up:
 
 dev-down:
 	./scripts/dev-down.sh
+
+smoke:
+	./scripts/smoke.sh
 
 lint:
 	cd terraform && terraform fmt -check -recursive
