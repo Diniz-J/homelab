@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - go-sample-dashboard.yaml
   - platform-overview.yaml
+  - logs.yaml
