@@ -93,3 +93,8 @@ make node-down
 - [Backup and restore drill](docs/backup-restore.md)
 - [Importing the `homelab-ca` into your trust store](docs/trust-store.md)
 - [ADRs](docs/adr/)
+
+## Meta
+
+- [CONTRIBUTING](CONTRIBUTING.md)
+- [SECURITY](SECURITY.md)

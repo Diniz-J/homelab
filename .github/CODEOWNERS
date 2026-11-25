@@ -1,0 +1,12 @@
+# The owner for anything not matched by a later pattern.
+*                      @Diniz-J
+
+# Scoped owners. Same person for now, but the pattern is in place
+# for the day the lab grows.
+/.github/              @Diniz-J
+/terraform/            @Diniz-J
+/ansible/              @Diniz-J
+/k8s/                  @Diniz-J
+/workloads/            @Diniz-J
+/docs/                 @Diniz-J
+/scripts/              @Diniz-J
