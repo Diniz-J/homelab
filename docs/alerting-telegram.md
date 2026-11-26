@@ -87,8 +87,12 @@ Save, exit. The file on disk is now encrypted.
 
 ## Apply
 
-Until the ArgoCD + SOPS rendering plugin is wired (see
-[`docs/secrets.md`](secrets.md)), apply manually:
+The ArgoCD + SOPS wiring exists (see
+[`docs/secrets.md`](secrets.md) and
+[ADR 0005](adr/0005-argocd-sops-integration.md)) but
+`k8s/apps/_root/kube-prometheus-stack.yaml` doesn't reference the
+KSOPS generator yet. Until that follow-up PR lands, apply the
+encrypted Secret manually:
 
 ```
 sops --decrypt secrets/alertmanager-telegram.enc.yaml \

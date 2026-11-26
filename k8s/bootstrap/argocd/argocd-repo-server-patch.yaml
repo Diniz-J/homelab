@@ -10,8 +10,12 @@ spec:
           emptyDir: {}
         - name: argocd-age-key
           secret:
+            # optional so the pod can start before the Secret exists.
+            # KSOPS only fails when an Application that actually uses
+            # the kustomize generator syncs; everything else keeps
+            # reconciling normally.
             secretName: argocd-age-key
-            optional: false
+            optional: true
       initContainers:
         - name: install-ksops
           image: viaductoss/ksops:v4.3.3

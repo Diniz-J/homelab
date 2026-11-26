@@ -6,3 +6,16 @@ namespace: argocd
 resources:
   - namespace.yaml
   - https://raw.githubusercontent.com/argoproj/argo-cd/v2.12.6/manifests/install.yaml
+
+patches:
+  # KSOPS sidecar for argocd-repo-server. The argocd-age-key Secret is
+  # mounted `optional: true`, so the pod starts before anyone creates
+  # the Secret; only Applications that actually reference the KSOPS
+  # kustomize generator fail until the Secret is in place. See
+  # docs/adr/0005-argocd-sops-integration.md.
+  - path: argocd-repo-server-patch.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: argocd-repo-server
