@@ -60,6 +60,11 @@ From there, ArgoCD syncs every leaf.
   using `minio/mc`). Read-only `ClusterRole`, no write verbs. Restore
   runbook in [`docs/backup-restore.md`](../../docs/backup-restore.md).
   `sync-wave: "25"`, after MinIO.
+- `platform-alerts` — a single `PrometheusRule` covering the parts
+  of the platform worth paging on: ArgoCD Application degraded /
+  out-of-sync, Traefik 5xx rate, `cert-manager` certificates
+  expiring soon or stuck not-Ready, Loki ingestion stopped or
+  sustained discards. `sync-wave: "20"`.
 - `grafana-dashboards` — `ConfigMap`s labelled
   `grafana_dashboard=1`, picked up by Grafana's sidecar provisioner.
   Three dashboards today:
