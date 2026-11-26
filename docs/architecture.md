@@ -2,41 +2,57 @@
 
 ## Overview
 
-```
-                       GitHub
-                         |
-                         | push / PR
-                         v
-             +-------------------------+
-             |   GitHub Actions CI     |
-             |  lint + unit + e2e      |
-             |                         |
-             |  e2e: kind cluster      |
-             |       tf apply          |
-             |       ArgoCD sync       |
-             |       smoke tests       |
-             |       tear down         |
-             +-------------------------+
+```mermaid
+flowchart LR
+  subgraph GH[GitHub]
+    repo[Diniz-J/homelab]
+    actions[GitHub Actions]
+    ghcr[(ghcr.io/diniz-j/go-sample)]
+  end
 
+  subgraph LAP[Operator laptop]
+    direction TB
+    tf[Terraform<br/>network · registry · cluster]
+    ans[Ansible<br/>base · docker · fail2ban · node_exporter · k3s]
+    coldcopy[(rclone<br/>cold copy)]
+    subgraph K3D[k3d cluster]
+      direction TB
+      traefik[Traefik]
+      cm[cert-manager]
+      argo[ArgoCD]
+      prom[Prometheus]
+      graf[Grafana]
+      loki[Loki]
+      alloy[Alloy]
+      am[Alertmanager]
+      minio[MinIO]
+      backup[backup CronJob]
+      gosample[go-sample]
+    end
+  end
 
-             +-------------------------+
-             |   Operator laptop       |
-             |                         |
-             |   k3d cluster (local)   |
-             |     Traefik             |
-             |     cert-manager        |
-             |     ArgoCD              |
-             |     Alloy / Prom / Loki |
-             |     Grafana / AlertMgr  |
-             |     MinIO (backup)      |
-             |     go-sample (demo)    |
-             |                         |
-             |   Backup rclone target  |
-             +-----------+-------------+
-                         |
-                         | webhook (internet)
-                         v
-                   Telegram bot
+  tg((Telegram bot))
+
+  repo -- pull_request / push --> actions
+  actions -- "e2e: kind + ArgoCD sync" --> actions
+  actions -- "build and push" --> ghcr
+
+  tf --> K3D
+  ans -.-> K3D
+  argo -- sync k8s/apps --> K3D
+  argo -- "KSOPS sidecar<br/>(SOPS + age)" --> argo
+  ghcr -- image pull --> gosample
+  alloy -- logs --> loki
+  prom -- scrape --> gosample
+  prom -- scrape --> traefik
+  prom -- scrape --> cm
+  prom -- scrape --> loki
+  graf -- query --> prom
+  graf -- query --> loki
+  am -- webhook --> tg
+  backup -- s3 push --> minio
+  minio -- rclone --> coldcopy
+  cm -- homelab-ca --> traefik
 ```
 
 ## Layers
