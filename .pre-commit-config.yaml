@@ -1,0 +1,62 @@
+---
+# Install:  pipx install pre-commit (or `pip install --user pre-commit`)
+# Enable:   pre-commit install
+# Manual:   pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^docs/examples/.*
+      - id: end-of-file-fixer
+        exclude: ^docs/examples/.*
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+        exclude: >-
+          (?x)^(
+            k8s/.*\.yaml|
+            ansible/roles/.*/molecule/.*\.yml|
+            .github/ISSUE_TEMPLATE/.*\.yml
+          )$
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.96.1
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+        args: [--args=-no-color]
+
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v24.9.2
+    hooks:
+      - id: ansible-lint
+        name: ansible-lint
+        files: ^ansible/
+        args: [ansible/]
+
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt (workloads/go-sample)
+        language: system
+        entry: bash -c '[[ -z "$(gofmt -l workloads/go-sample)" ]] || { gofmt -l workloads/go-sample; exit 1; }'
+        pass_filenames: false
+        files: ^workloads/go-sample/.*\.go$
+      - id: go-vet
+        name: go vet (workloads/go-sample)
+        language: system
+        entry: bash -c "cd workloads/go-sample && go vet ./..."
+        pass_filenames: false
+        files: ^workloads/go-sample/.*\.go$

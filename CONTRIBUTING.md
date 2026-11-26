@@ -45,6 +45,23 @@ Branch protection enforces linear history and blocks direct pushes to
 - A new role, module or `Application` gets at least a one-line entry
   in the nearest `README.md` (ansible, terraform, k8s/apps).
 
+## Pre-commit hooks
+
+The repo ships [`.pre-commit-config.yaml`](.pre-commit-config.yaml)
+with the usual hygiene hooks (trailing whitespace, EOF newline, LF
+line endings, YAML parse, large-file guard, private-key sniff),
+`shellcheck`, `terraform_fmt` + `terraform_validate`, `ansible-lint`,
+`gofmt`, and `go vet`.
+
+```
+pipx install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
+
+Everything the hooks run is also available through `make lint`, so
+pre-commit is opt-in.
+
 ## Local checks before you push
 
 ### Terraform
