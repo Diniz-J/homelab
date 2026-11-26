@@ -99,13 +99,23 @@ Never commit, even encrypted:
 
 ## What ArgoCD does with these
 
-Planned, not wired: a KSOPS sidecar on `argocd-repo-server` renders
-`*.enc.yaml` files during sync. See
-[ADR 0005](adr/0005-argocd-sops-integration.md) for the plan and
-[`docs/examples/argocd-sops/`](examples/argocd-sops/) for the
-reference manifests (repo-server patch + `argocd-age-key` `Secret`
-template).
+The bootstrap kustomization patches `argocd-repo-server` with a
+KSOPS sidecar — see
+[ADR 0005](adr/0005-argocd-sops-integration.md) and
+[`k8s/bootstrap/argocd/argocd-repo-server-patch.yaml`](../k8s/bootstrap/argocd/argocd-repo-server-patch.yaml).
+Once the `argocd-age-key` Secret exists in the `argocd` namespace,
+any Application that uses the KSOPS kustomize generator decrypts
+`*.enc.yaml` files during sync.
 
-Until that lands, decrypt manually and `kubectl apply` for the
-single Secret the Alertmanager Telegram receiver needs — the file
-stays encrypted in git either way.
+Create the Secret on a fresh cluster:
+
+```
+kubectl --context k3d-homelab -n argocd create secret generic argocd-age-key \
+  --from-file=keys.txt=$HOME/.config/sops/age/keys.txt
+kubectl --context k3d-homelab -n argocd rollout restart deploy/argocd-repo-server
+```
+
+Until that Secret is in place — and until the Alertmanager Telegram
+receiver migrates off the manual apply documented in
+[`docs/alerting-telegram.md`](alerting-telegram.md) — nothing in the
+repo requires a working KSOPS chain to sync.

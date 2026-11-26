@@ -1,6 +1,8 @@
 # ADR 0005 — ArgoCD + SOPS integration via a KSOPS sidecar
 
-Status: accepted (plan). First implementation ships as a separate PR.
+Status: accepted. Wired into `k8s/bootstrap/argocd/` via a strategic
+merge patch; the `argocd-age-key` Secret is operator-created on a
+fresh cluster.
 
 ## Context
 
@@ -63,18 +65,18 @@ Negative:
 
 ## Rollout
 
-- This PR ships the plan (ADR) and reference manifests under
-  [`docs/examples/argocd-sops/`](../examples/argocd-sops/). Nothing
-  under `k8s/bootstrap/` moves yet.
-- A follow-up PR copies those manifests into
-  `k8s/bootstrap/argocd/` and extends the bootstrap kustomization.
-  That PR lands only after an age keypair has been generated and the
-  `argocd-age-key` Secret created in the cluster, so the patched
-  `argocd-repo-server` has what it needs before it restarts.
-- The Alertmanager Telegram workaround in
-  [`docs/alerting-telegram.md`](../alerting-telegram.md) is the first
-  encrypted file to migrate from "manual apply" to "sync from git"
-  once the plumbing lands.
+- [`k8s/bootstrap/argocd/argocd-repo-server-patch.yaml`](../../k8s/bootstrap/argocd/argocd-repo-server-patch.yaml)
+  carries the strategic merge patch. The bootstrap kustomization
+  applies it; nothing more to wire.
+- The `argocd-age-key` Secret is `optional: true` on the volume, so
+  `argocd-repo-server` starts cleanly before the Secret exists. Only
+  Applications that actually reference the KSOPS generator fail
+  until the Secret is in place.
+- First encrypted file to migrate off the manual
+  `sops --decrypt | kubectl apply` ceremony is
+  `alertmanager-telegram` — see
+  [`docs/alerting-telegram.md`](../alerting-telegram.md). Still a
+  follow-up PR.
 
 ## Revisit when
 
