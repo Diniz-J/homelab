@@ -1,0 +1,73 @@
+name: Bug report
+description: Something in the lab doesn't do what the docs or code claim.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file this. Be specific — the lab
+        is a single-operator project and I'll follow up directly.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences on what breaks.
+      placeholder: After `make dev-up`, the go-sample pod stays in ImagePullBackOff.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands and files you touched.
+      placeholder: |
+        1. `git clone` at <commit>
+        2. `make dev-up`
+        3. `kubectl -n go-sample describe pod ...`
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: What the docs or the code said would happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: What happened instead. Paste logs / events between fences.
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Docker/k3d versions, Terraform, kubectl.
+      placeholder: Windows 11 + WSL2 Ubuntu 22.04, Docker 27.3, k3d v5.7, Terraform 1.9.8
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer
+      options:
+        - Terraform
+        - Ansible
+        - k8s / ArgoCD
+        - Observability (Prom / Grafana / Loki / Alloy)
+        - Backup / MinIO
+        - Scripts / Makefile
+        - Docs
+        - Other
+    validations:
+      required: true

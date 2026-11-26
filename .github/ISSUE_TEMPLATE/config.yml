@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/Diniz-J/homelab/security/advisories/new
+    about: Report a security problem privately through GitHub Security Advisories.
+  - name: Question or discussion
+    url: https://github.com/Diniz-J/homelab/discussions
+    about: Open a discussion instead of an issue if there's no action attached.
