@@ -1,5 +1,12 @@
 # homelab
 
+[![e2e](https://github.com/Diniz-J/homelab/actions/workflows/e2e.yml/badge.svg)](https://github.com/Diniz-J/homelab/actions/workflows/e2e.yml)
+[![terraform](https://github.com/Diniz-J/homelab/actions/workflows/terraform.yml/badge.svg)](https://github.com/Diniz-J/homelab/actions/workflows/terraform.yml)
+[![k8s manifests](https://github.com/Diniz-J/homelab/actions/workflows/k8s-manifests.yml/badge.svg)](https://github.com/Diniz-J/homelab/actions/workflows/k8s-manifests.yml)
+[![ansible](https://github.com/Diniz-J/homelab/actions/workflows/ansible.yml/badge.svg)](https://github.com/Diniz-J/homelab/actions/workflows/ansible.yml)
+[![go-sample](https://github.com/Diniz-J/homelab/actions/workflows/go-sample.yml/badge.svg)](https://github.com/Diniz-J/homelab/actions/workflows/go-sample.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Personal infrastructure lab. A full Kubernetes platform — Terraform, Ansible,
 GitOps, observability, backup and CI — that you can clone and bring up on any
 machine with Docker, in minutes.
