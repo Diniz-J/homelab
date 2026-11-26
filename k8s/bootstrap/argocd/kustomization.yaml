@@ -5,7 +5,7 @@ namespace: argocd
 
 resources:
   - namespace.yaml
-  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.12.6/manifests/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.6.3/manifests/install.yaml
 
 patches:
   # KSOPS sidecar for argocd-repo-server. The argocd-age-key Secret is
