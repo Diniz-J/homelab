@@ -21,6 +21,11 @@ Available:
   non-zero on the first miss. `HOST_SUFFIX`, `HTTPS_PORT`,
   `KUBE_CONTEXT`, `CURL_FLAGS` overrides available. Falls back to
   `python3` when `jq` isn't installed.
+- `rotate-sops.sh` — runs `sops updatekeys --yes` on every
+  `*.enc.yaml` the repo tracks. Walks `secrets/` and `k8s/` by
+  default; pass one or more paths to scope it. `DRY_RUN=true` lists
+  what would move. See
+  [`docs/secrets.md`](../docs/secrets.md) for the drill.
 
 Planned:
 

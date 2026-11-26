@@ -75,13 +75,31 @@ pick up the right recipient from the path.
 sops --decrypt secrets/alertmanager-telegram.enc.yaml
 ```
 
-### Rotate the key
+### Rotate recipients
+
+A recipient change (new operator, revoked key) only re-encrypts the
+file's own data key — the payload stays unchanged. Do it for every
+encrypted file in the repo with the drill script:
 
 ```
-sops updatekeys secrets/alertmanager-telegram.enc.yaml
+./scripts/rotate-sops.sh              # every *.enc.yaml under secrets/ and k8s/
+./scripts/rotate-sops.sh secrets/     # scope to one tree
+DRY_RUN=true ./scripts/rotate-sops.sh # list what would be touched, change nothing
 ```
 
-Run after changing the recipient in `.sops.yaml`.
+Under the hood: `sops updatekeys --yes` on each file, which picks
+the new recipient list up from `.sops.yaml`. Review `git diff`
+afterwards — only the metadata should move.
+
+### Rotate an actual secret value
+
+```
+sops secrets/alertmanager-telegram.enc.yaml
+```
+
+Replace the value, save. Commit, sync (ArgoCD picks it up through
+the KSOPS generator — see
+[`docs/adr/0005-argocd-sops-integration.md`](adr/0005-argocd-sops-integration.md)).
 
 ## What belongs here (and what doesn't)
 
