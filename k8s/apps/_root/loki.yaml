@@ -59,8 +59,11 @@ spec:
             enabled: false
           rules:
             enabled: false
+          # Flip serviceMonitor on so the platform-alerts rules have
+          # loki_distributor_bytes_received_total and
+          # loki_discarded_samples_total to fire on.
           serviceMonitor:
-            enabled: false
+            enabled: true
           selfMonitoring:
             enabled: false
           lokiCanary:

@@ -1,0 +1,96 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: platform-alerts
+  labels:
+    app.kubernetes.io/name: platform-alerts
+spec:
+  groups:
+    - name: argocd.rules
+      rules:
+        - alert: ArgoCDApplicationDegraded
+          # Any Application the root points at that drops below Healthy
+          # for more than ten minutes. Catches drift that selfHeal
+          # can't fix (CRD changes, missing Secrets, image-pull
+          # backoffs).
+          expr: argocd_app_info{health_status!~"Healthy|Progressing"} == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "ArgoCD application {{ $labels.name }} is {{ $labels.health_status }}"
+            description: "Application {{ $labels.name }} in project {{ $labels.project }} has been {{ $labels.health_status }} for 10 minutes. Investigate with `kubectl -n argocd describe application {{ $labels.name }}`."
+
+        - alert: ArgoCDApplicationOutOfSync
+          expr: argocd_app_info{sync_status!="Synced"} == 1
+          for: 30m
+          labels:
+            severity: info
+          annotations:
+            summary: "ArgoCD application {{ $labels.name }} is {{ $labels.sync_status }}"
+            description: "selfHeal usually catches drift in under a minute. {{ $labels.name }} has been {{ $labels.sync_status }} for 30 minutes -- probably a stuck finalizer or a manifest that fails to apply server-side."
+
+    - name: traefik.rules
+      rules:
+        - alert: TraefikServerErrorRate
+          # 5xx rate above 5% of the total service rate for any single
+          # Traefik service over the last 5 minutes.
+          expr: |
+            sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[5m]))
+              /
+            clamp_min(sum by (service) (rate(traefik_service_requests_total[5m])), 0.001)
+            > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Traefik service {{ $labels.service }} is returning >5% 5xx"
+            description: "Rolling 5-minute 5xx share is above 5% of the total request rate for {{ $labels.service }}. Check the service pods and ingress config."
+
+    - name: cert-manager.rules
+      rules:
+        - alert: CertificateExpiringSoon
+          # Any Certificate cert-manager issued that expires in less
+          # than seven days -- renewal should have happened already.
+          expr: certmanager_certificate_expiration_timestamp_seconds - time() < 7 * 24 * 60 * 60
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in <7d"
+            description: "cert-manager usually renews a few days before expiry. If this fires, renewal is stuck: check the Issuer and the HTTP-01 / DNS-01 solver for the certificate."
+
+        - alert: CertificateNotReady
+          expr: certmanager_certificate_ready_status{condition="True"} == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate {{ $labels.namespace }}/{{ $labels.name }} is not Ready"
+            description: "The Certificate resource has not reported Ready=True for 10 minutes. Describe it and check the matching CertificateRequest / Order."
+
+    - name: loki.rules
+      rules:
+        - alert: LokiNoIngestion
+          # No bytes landing in the distributor for ten minutes. In a
+          # live lab this means Alloy stopped pushing or Loki is
+          # rejecting -- either is a blind spot for the logs
+          # dashboard.
+          expr: rate(loki_distributor_bytes_received_total[10m]) == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Loki hasn't received any logs for 10 minutes"
+            description: "Nothing has been pushed to the Loki distributor for 10 minutes. Check Alloy pods, the Loki write endpoint, and the loki.write component in Alloy's River config."
+
+        - alert: LokiHighDiscardRate
+          # Any discard is noteworthy; sustained discard means a
+          # label-set or rate-limit is misconfigured.
+          expr: rate(loki_discarded_samples_total[5m]) > 0
+          for: 10m
+          labels:
+            severity: info
+          annotations:
+            summary: "Loki is discarding log lines"
+            description: "Loki has been discarding log lines for 10 minutes. Reason label: {{ $labels.reason }}. Check limits_config in the Loki Application or the label cardinality coming out of Alloy."

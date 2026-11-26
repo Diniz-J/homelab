@@ -11,4 +11,5 @@ resources:
   - minio.yaml
   - backup.yaml
   - grafana-dashboards.yaml
+  - platform-alerts.yaml
   - go-sample.yaml
