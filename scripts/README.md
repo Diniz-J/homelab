@@ -26,6 +26,13 @@ Available:
   default; pass one or more paths to scope it. `DRY_RUN=true` lists
   what would move. See
   [`docs/secrets.md`](../docs/secrets.md) for the drill.
+- `lint.sh` — mirrors every static gate CI runs:
+  `terraform fmt`/`validate`/`tflint`,
+  `kustomize build` + `kubeconform` on every `kustomization.yaml`,
+  `ansible-lint`, `gofmt` + `go vet` on the Go workload. Skips
+  missing tools with a warning instead of failing hard; opts out
+  per-stage with `SKIP_TERRAFORM`, `SKIP_K8S`, `SKIP_ANSIBLE`,
+  `SKIP_GO`. `make lint` is the shortcut.
 
 Planned:
 

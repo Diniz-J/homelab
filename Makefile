@@ -9,7 +9,7 @@ help:
 	@echo "  dev-up       spin a local k3d cluster and sync manifests"
 	@echo "  dev-down     tear the local k3d cluster down"
 	@echo "  smoke        hit the platform endpoints and the ArgoCD roster"
-	@echo "  lint         run all linters locally"
+	@echo "  lint         run every static gate CI runs (SKIP_* opt-outs available)"
 	@echo "  destroy      terraform destroy (careful)"
 
 bootstrap:
@@ -34,8 +34,7 @@ smoke:
 	./scripts/smoke.sh
 
 lint:
-	cd terraform && terraform fmt -check -recursive
-	cd ansible && ansible-lint
+	./scripts/lint.sh
 
 destroy:
 	cd terraform && terraform destroy
