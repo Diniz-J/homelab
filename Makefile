@@ -1,4 +1,4 @@
-.PHONY: help bootstrap apply configure dev-up dev-down smoke lint plan destroy
+.PHONY: help bootstrap apply configure dev-up dev-down smoke lint verify plan destroy
 
 help:
 	@echo "Targets:"
@@ -10,6 +10,7 @@ help:
 	@echo "  dev-down     tear the local k3d cluster down"
 	@echo "  smoke        hit the platform endpoints and the ArgoCD roster"
 	@echo "  lint         run every static gate CI runs (SKIP_* opt-outs available)"
+	@echo "  verify       lint + smoke (expects a running dev cluster)"
 	@echo "  destroy      terraform destroy (careful)"
 
 bootstrap:
@@ -35,6 +36,8 @@ smoke:
 
 lint:
 	./scripts/lint.sh
+
+verify: lint smoke
 
 destroy:
 	cd terraform && terraform destroy
